@@ -1,0 +1,37 @@
+{
+    "name": "axolote-source/messages-sdk",
+    "description": "SDK for AxMessages integration",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "AxoloteSource\\MessagesSdk\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Luis Ozuna"
+        }
+    ],
+    "autoload-dev": {
+        "psr-4": {
+            "AxoloteSource\\MessagesSdk\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": "^8.1|^8.2|^8.3|^8.4",
+        "illuminate/http": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/support": "^9.0|^10.0|^11.0|^12.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AxoloteSource\\MessagesSdk\\AxMessagesServiceProvider"
+            ]
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.1",
+        "orchestra/testbench": "^10.11"
+    }
+}
