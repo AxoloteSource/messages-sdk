@@ -4,6 +4,7 @@ namespace AxoloteSource\MessagesSdk;
 
 use AxoloteSource\MessagesSdk\Clases\AxMessagesBase;
 use AxoloteSource\MessagesSdk\Clases\SendEmail;
+use AxoloteSource\MessagesSdk\Clases\SendPushNotification;
 use AxoloteSource\MessagesSdk\Clases\SendWhatsapp;
 use AxoloteSource\MessagesSdk\DTO\Message;
 use Illuminate\Http\Client\Factory as HttpFactory;
@@ -48,5 +49,15 @@ class AxMessages
     public static function sendEmailTemplate(array $values): ?Message
     {
         return self::sendEmail()->template($values);
+    }
+
+    public static function sendPushNotification(): SendPushNotification
+    {
+        return new SendPushNotification;
+    }
+
+    public static function sendPushNotificationToUsers(string $pushNotificationId, string $userListId): ?Message
+    {
+        return self::sendPushNotification()->send($userListId, $pushNotificationId);
     }
 }
