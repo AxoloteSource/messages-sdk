@@ -44,15 +44,37 @@ class AxMessagesBase
             ->withHeaders($this->headers);
     }
 
-    protected function post(?array $data = null): PromiseInterface|Response
+    protected function request(string $method, ?string $url = null, ?array $data = null): PromiseInterface|Response
     {
+        $actualUrl = $url ?? $this->url;
+
         if (AxMessages::isFake() || config('axMessages.disabled')) {
-            $this->fake();
+            $this->fake($actualUrl);
         }
 
-        $this->response = $this->http()->post("$this->url", $data);
+        $this->response = $this->http()->{lcfirst($method)}($actualUrl, $data);
 
         return $this->response;
+    }
+
+    protected function get(string $url = null): PromiseInterface|Response
+    {
+        return $this->request('GET', $url);
+    }
+
+    protected function post(?array $data = null): PromiseInterface|Response
+    {
+        return $this->request('POST', data: $data);
+    }
+
+    protected function put(?array $data = null): PromiseInterface|Response
+    {
+        return $this->request('PUT', data: $data);
+    }
+
+    protected function delete(?array $data = null): PromiseInterface|Response
+    {
+        return $this->request('DELETE', data: $data);
     }
 
     protected function response(): ?array
@@ -85,10 +107,10 @@ class AxMessagesBase
         return [];
     }
 
-    private function fake(): void
+    private function fake(?string $url = null): void
     {
         self::$httpClient->fake([
-            $this->url => self::$httpClient->response(
+            ($url ?? $this->url) => self::$httpClient->response(
                 $this->fakeResponse(),
                 200,
                 $this->headers
