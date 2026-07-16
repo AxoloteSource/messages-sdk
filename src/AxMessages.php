@@ -2,49 +2,62 @@
 
 namespace AxoloteSource\MessagesSdk;
 
-use AxoloteSource\MessagesSdk\Clases\AxMessagesBase;
+use AxoloteSource\MessagesSdk\Traits\UseFake;
 use AxoloteSource\MessagesSdk\Clases\SendEmail;
+use AxoloteSource\MessagesSdk\Clases\SendPushNotification;
 use AxoloteSource\MessagesSdk\Clases\SendWhatsapp;
 use AxoloteSource\MessagesSdk\DTO\Message;
-use Illuminate\Http\Client\Factory as HttpFactory;
 
 class AxMessages
 {
-    private static bool $isFake = false;
+    use UseFake;
 
-    public static function isFake(): bool
+    public static function Whatsapp(): SendWhatsapp
     {
-        return self::$isFake;
+        return new SendWhatsapp;
     }
 
-    public static function fake(bool $isFake = true): void
+    public static function email(): SendEmail
     {
-        self::$isFake = $isFake;
-
-        if ($isFake) {
-            if (property_exists(AxMessagesBase::class, 'httpClient')) {
-                $reflection = new \ReflectionClass(AxMessagesBase::class);
-                $property = $reflection->getProperty('httpClient');
-                $property->setValue(null, new HttpFactory);
-            }
-        }
+        return new SendEmail;
     }
 
+    public static function pushNotification(): SendPushNotification
+    {
+        return new SendPushNotification;
+    }
+
+    /*****************************
+     *     DEPRECATED METHODS    *
+     *****************************/
+
+    /**
+     * @deprecated use whatsapp()
+     */
     public static function sendWhatsapp(): SendWhatsapp
     {
         return new SendWhatsapp;
     }
 
+    /**
+     * @deprecated use whatsapp()->template($to, $templateName, $variables)
+     */
     public static function sendWhatsappTemplate(string $to, string $templateName, array $variables = []): ?Message
     {
         return self::sendWhatsapp()->template($to, $templateName, $variables);
     }
 
+    /**
+     * @deprecated use email()
+     */
     public static function sendEmail(): SendEmail
     {
         return new SendEmail;
     }
 
+    /**
+     * @deprecated use email()->template()
+     */
     public static function sendEmailTemplate(array $values): ?Message
     {
         return self::sendEmail()->template($values);
