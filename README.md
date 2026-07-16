@@ -1,6 +1,6 @@
 # Messages SDK
 
-SDK for integration with the AxMessages messaging service from Axolote Source. This library facilitates sending WhatsApp messages and emails from Laravel applications.
+SDK for integration with the AxMessages messaging service from Axolote Source. This library facilitates sending WhatsApp messages, emails, and push notifications from Laravel applications.
 
 ## Installation
 
@@ -96,6 +96,43 @@ Or through the instance:
 
 ```php
 $response = AxMessages::sendEmail()->template($data);
+```
+
+### Send Push Notification
+
+To send a push notification, use the `pushNotification()` method which returns a `SendPushNotification` instance:
+
+```php
+use AxoloteSource\MessagesSdk\AxMessages;
+
+$userListId = 'user-list-456';
+$pushNotificationId = 'push-notification-123';
+
+$response = AxMessages::pushNotification()->send($userListId, $pushNotificationId);
+
+if ($response) {
+    // Push notification sent successfully
+    echo $response->id;
+}
+```
+
+### Show Push Notification
+
+You can also retrieve the details of a previously sent push notification:
+
+```php
+use AxoloteSource\MessagesSdk\AxMessages;
+
+$pushNotification = AxMessages::pushNotification()->show('1');
+
+if ($pushNotification) {
+    echo $pushNotification->title;
+    echo $pushNotification->body;
+    echo $pushNotification->statusName;
+    echo $pushNotification->totalDevices;
+    echo $pushNotification->successCount;
+    echo $pushNotification->failureCount;
+}
 ```
 
 ## Testing (Mocking)
