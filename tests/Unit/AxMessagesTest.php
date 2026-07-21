@@ -105,4 +105,35 @@ class AxMessagesTest extends TestCase
         $this->assertEquals(1, $message->attempts);
         $this->assertCount(1, $message->message_histories);
     }
+
+    public function test_create_push_notification_returns_push_notification_in_fake_mode()
+    {
+        AxMessages::fake(true);
+
+        $pushNotification = AxMessages::pushNotification()->create('Test Title', 'Test Body', ['key' => 'value']);
+
+        $this->assertInstanceOf(PushNotification::class, $pushNotification);
+        $this->assertEquals('1', $pushNotification->id);
+        $this->assertEquals('Test Push Notification', $pushNotification->title);
+    }
+
+    public function test_create_push_notification_returns_all_properties()
+    {
+        AxMessages::fake(true);
+
+        $pushNotification = AxMessages::pushNotification()->create('Test Title', 'Test Body', ['key' => 'value']);
+
+        $this->assertInstanceOf(PushNotification::class, $pushNotification);
+        $this->assertEquals('1', $pushNotification->id);
+        $this->assertEquals('Test Push Notification', $pushNotification->title);
+        $this->assertEquals('This is a test push notification', $pushNotification->body);
+        $this->assertEquals(['key' => 'value'], $pushNotification->data);
+        $this->assertEquals(['1', '2', '3'], $pushNotification->userIds);
+        $this->assertEquals('Pending', $pushNotification->statusName);
+        $this->assertEquals('1', $pushNotification->pushNotificationStatusId);
+        $this->assertEquals(100, $pushNotification->totalDevices);
+        $this->assertEquals(0, $pushNotification->successCount);
+        $this->assertEquals(0, $pushNotification->failureCount);
+        $this->assertCount(1, $pushNotification->histories);
+    }
 }

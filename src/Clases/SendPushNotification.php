@@ -44,6 +44,40 @@ class SendPushNotification extends AxMessagesBase
         return null;
     }
 
+    public function create(string $title, string $body, ?array $data = null): ?PushNotification
+    {
+        try {
+            $url = config('axMessages.url').'/api/v1/messages/push-notifications';
+            $payload = [
+                'title' => $title,
+                'body' => $body,
+            ];
+
+            if ($data !== null) {
+                $payload['data'] = $data;
+            }
+
+            $response = $this->request('POST', $url, $payload);
+
+            if ($response->successful()) {
+                return PushNotification::fromArray($response->json());
+            }
+
+            if ($this->debugMode) {
+                logger()->error('Error al crear Push Notification', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            logger()->error('Excepción al crear Push Notification', ['exception' => $e]);
+        }
+
+        return null;
+    }
+
     public function show(string $id): ?PushNotification
     {
         try {
@@ -78,7 +112,7 @@ class SendPushNotification extends AxMessagesBase
 
     protected function fakeResponse(): array
     {
-        if ($this->currentUrl && str_contains($this->currentUrl, '/api/v1/push-notifications/')) {
+        if ($this->currentUrl && (str_contains($this->currentUrl, '/api/v1/push-notifications/') || str_contains($this->currentUrl, '/api/v1/messages/push-notifications'))) {
             return [
                 'status' => 'OK',
                 'message' => null,
