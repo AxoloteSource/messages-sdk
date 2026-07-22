@@ -135,6 +135,62 @@ if ($pushNotification) {
 }
 ```
 
+### Crear Notificación Push
+
+Para crear una nueva notificación push, utiliza el método `create`:
+
+```php
+use AxoloteSource\MessagesSdk\AxMessages;
+
+$pushNotification = AxMessages::pushNotification()->create(
+    title: 'Título de la Notificación',
+    body: 'Contenido del cuerpo de la notificación',
+    data: ['key' => 'value'] // opcional
+);
+
+if ($pushNotification) {
+    echo $pushNotification->id;
+    echo $pushNotification->title;
+    echo $pushNotification->body;
+    echo $pushNotification->statusName;
+}
+```
+
+### Actualizar Notificación Push
+
+Para actualizar una notificación push existente, utiliza el método `update`. El `id` es requerido, mientras que `title`, `body` y `data` son opcionales:
+
+```php
+use AxoloteSource\MessagesSdk\AxMessages;
+
+$pushNotification = AxMessages::pushNotification()->update(
+    id: '1',
+    title: 'Título Actualizado', // opcional
+    body: 'Contenido actualizado', // opcional
+    data: ['key' => 'value'] // opcional
+);
+
+if ($pushNotification) {
+    echo $pushNotification->id;
+    echo $pushNotification->title;
+    echo $pushNotification->body;
+}
+```
+
+### Eliminar Notificación Push
+
+Para eliminar una notificación push, utiliza el método `destroy`:
+
+```php
+use AxoloteSource\MessagesSdk\AxMessages;
+
+$success = AxMessages::pushNotification()->destroy('1');
+
+if ($success) {
+    // La notificación push se eliminó correctamente
+}
+```
+
 ## Pruebas (Mocking)
 
 El SDK incluye una funcionalidad para simular el envío de mensajes en entornos de prueba, evitando realizar peticiones reales.

@@ -12,6 +12,8 @@ class SendPushNotification extends AxMessagesBase
 {
     private ?string $currentUrl = null;
 
+    private ?string $currentMethod = null;
+
     public function __construct()
     {
         parent::__construct('/api/v1/messages/push-notifications/send');
@@ -47,7 +49,7 @@ class SendPushNotification extends AxMessagesBase
     public function create(string $title, string $body, ?array $data = null): ?PushNotification
     {
         try {
-            $url = config('axMessages.url').'/api/v1/messages/push-notifications';
+            $url = config('axMessages.url').'/api/v1/push-notifications';
             $payload = [
                 'title' => $title,
                 'body' => $body,
@@ -103,16 +105,81 @@ class SendPushNotification extends AxMessagesBase
         return null;
     }
 
+    public function update(string $id, ?string $title = null, ?string $body = null, ?array $data = null): ?PushNotification
+    {
+        try {
+            $url = config('axMessages.url')."/api/v1/push-notifications/{$id}";
+            $payload = [];
+
+            if ($title !== null) {
+                $payload['title'] = $title;
+            }
+
+            if ($body !== null) {
+                $payload['body'] = $body;
+            }
+
+            if ($data !== null) {
+                $payload['data'] = $data;
+            }
+
+            $response = $this->request('PUT', $url, $payload);
+
+            if ($response->successful()) {
+                return PushNotification::fromArray($response->json());
+            }
+
+            if ($this->debugMode) {
+                logger()->error('Error al actualizar Push Notification', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            logger()->error('Excepción al actualizar Push Notification', ['exception' => $e]);
+        }
+
+        return null;
+    }
+
+    public function destroy(string $id): bool
+    {
+        try {
+            $url = config('axMessages.url')."/api/v1/push-notifications/{$id}";
+            $response = $this->request('DELETE', $url);
+
+            if ($response->status() === 204) {
+                return true;
+            }
+
+            if ($this->debugMode) {
+                logger()->error('Error al eliminar Push Notification', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            logger()->error('Excepción al eliminar Push Notification', ['exception' => $e]);
+        }
+
+        return false;
+    }
+
     protected function request(string $method, ?string $url = null, ?array $data = null): PromiseInterface|Response
     {
         $this->currentUrl = $url;
+        $this->currentMethod = $method;
 
         return parent::request($method, $url, $data);
     }
 
     protected function fakeResponse(): array
     {
-        if ($this->currentUrl && (str_contains($this->currentUrl, '/api/v1/push-notifications/') || str_contains($this->currentUrl, '/api/v1/messages/push-notifications'))) {
+        if ($this->currentUrl && (str_contains($this->currentUrl, '/api/v1/push-notifications') || str_contains($this->currentUrl, '/api/v1/messages/push-notifications'))) {
             return [
                 'status' => 'OK',
                 'message' => null,
@@ -164,5 +231,14 @@ class SendPushNotification extends AxMessagesBase
                 ],
             ],
         ];
+    }
+
+    protected function fakeStatusCode(): int
+    {
+        if ($this->currentUrl && str_contains($this->currentUrl, '/api/v1/push-notifications/') && $this->currentMethod === 'DELETE') {
+            return 204;
+        }
+
+        return 200;
     }
 }

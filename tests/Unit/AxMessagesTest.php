@@ -136,4 +136,23 @@ class AxMessagesTest extends TestCase
         $this->assertEquals(0, $pushNotification->failureCount);
         $this->assertCount(1, $pushNotification->histories);
     }
+
+    public function test_update_push_notification_returns_push_notification_in_fake_mode()
+    {
+        AxMessages::fake(true);
+
+        $pushNotification = AxMessages::pushNotification()->update('1', 'Updated Title', 'Updated Body');
+
+        $this->assertInstanceOf(PushNotification::class, $pushNotification);
+        $this->assertEquals('1', $pushNotification->id);
+    }
+
+    public function test_destroy_push_notification_returns_true_in_fake_mode()
+    {
+        AxMessages::fake(true);
+
+        $result = AxMessages::pushNotification()->destroy('1');
+
+        $this->assertTrue($result);
+    }
 }

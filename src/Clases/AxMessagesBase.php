@@ -107,12 +107,17 @@ class AxMessagesBase
         return [];
     }
 
+    protected function fakeStatusCode(): int
+    {
+        return 200;
+    }
+
     private function fake(?string $url = null): void
     {
         self::$httpClient->fake([
             ($url ?? $this->url) => self::$httpClient->response(
                 $this->fakeResponse(),
-                200,
+                $this->fakeStatusCode(),
                 $this->headers
             ),
         ]);
