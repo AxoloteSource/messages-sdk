@@ -53,6 +53,16 @@ class AxMessagesTest extends TestCase
         $this->assertEquals(1, $message->id);
     }
 
+    public function test_send_push_notification_with_user_ids_returns_message_in_fake_mode()
+    {
+        AxMessages::fake(true);
+
+        $message = AxMessages::pushNotification()->send(['1', '2', '3'], 'push-notification-123');
+
+        $this->assertInstanceOf(Message::class, $message);
+        $this->assertEquals(1, $message->id);
+    }
+
     public function test_show_push_notification_returns_push_notification_in_fake_mode()
     {
         AxMessages::fake(true);

@@ -19,13 +19,18 @@ class SendPushNotification extends AxMessagesBase
         parent::__construct('/api/v1/messages/push-notifications/send');
     }
 
-    public function send(string $userListId, string $pushNotificationId): ?Message
+    public function send(string|array $userListOrIds, string $pushNotificationId): ?Message
     {
         try {
-            $response = $this->post([
-                'push_notification_id' => $pushNotificationId,
-                'user_list_id' => $userListId,
-            ]);
+            $payload = ['push_notification_id' => $pushNotificationId];
+
+            if (is_array($userListOrIds)) {
+                $payload['user_ids'] = $userListOrIds;
+            } else {
+                $payload['user_list_id'] = $userListOrIds;
+            }
+
+            $response = $this->post($payload);
 
             if ($response->successful()) {
                 return Message::fromArray($response->json());
