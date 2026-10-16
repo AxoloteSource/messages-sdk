@@ -4,6 +4,7 @@ namespace AxoloteSource\MessagesSdk;
 
 use AxoloteSource\MessagesSdk\Traits\UseFake;
 use AxoloteSource\MessagesSdk\Clases\Incoming;
+use AxoloteSource\MessagesSdk\Clases\ReplicateUrls;
 use AxoloteSource\MessagesSdk\Clases\SendEmail;
 use AxoloteSource\MessagesSdk\Clases\SendPushNotification;
 use AxoloteSource\MessagesSdk\Clases\SendWhatsapp;
@@ -34,6 +35,14 @@ class AxMessages
     public static function incoming(): Incoming
     {
         return new Incoming;
+    }
+
+    /**
+     * CRUD access to the WhatsApp replicate hook URLs.
+     */
+    public static function replicateUrls(): ReplicateUrls
+    {
+        return new ReplicateUrls;
     }
 
     /*****************************
