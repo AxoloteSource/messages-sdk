@@ -1,6 +1,6 @@
 # Messages SDK
 
-SDK for integration with the AxMessages messaging service from Axolote Source. This library facilitates sending WhatsApp messages, emails, and push notifications from Laravel applications.
+SDK for integration with the AxMessages messaging service from Axolote Source. This library facilitates sending WhatsApp messages, emails, and push notifications, as well as reading inbound WhatsApp messages, from Laravel applications.
 
 ## Installation
 
@@ -188,6 +188,70 @@ $success = AxMessages::pushNotification()->destroy('1');
 
 if ($success) {
     // Push notification deleted successfully
+}
+```
+
+### Incoming WhatsApp Messages
+
+To read inbound WhatsApp messages (contacts and messages), use the `incoming()` method which returns an `Incoming` instance:
+
+```php
+use AxoloteSource\MessagesSdk\AxMessages;
+
+$contacts = AxMessages::incoming()->listContacts();
+
+foreach ($contacts as $contact) {
+    echo $contact->id;
+    echo $contact->phone;
+    echo $contact->name;
+    echo $contact->lastMessageText;
+    echo $contact->unreadCount;
+}
+```
+
+You can also retrieve a single contact by its id:
+
+```php
+$contact = AxMessages::incoming()->showContact('1');
+
+if ($contact) {
+    echo $contact->name;
+    echo $contact->messagesCount;
+}
+```
+
+To list the messages of a contact:
+
+```php
+$messages = AxMessages::incoming()->listMessages('1');
+
+foreach ($messages as $message) {
+    echo $message->waMessageId;
+    echo $message->type;
+    echo $message->text;
+    echo $message->waTimestamp;
+}
+```
+
+And a single message by its id:
+
+```php
+$message = AxMessages::incoming()->showMessage('1');
+
+if ($message) {
+    echo $message->text;
+}
+```
+
+You can check if the last operation failed:
+
+```php
+$incoming = AxMessages::incoming();
+$contacts = $incoming->listContacts();
+
+if ($incoming->hasError()) {
+    $error = $incoming->getError();
+    echo $error['message'];
 }
 ```
 

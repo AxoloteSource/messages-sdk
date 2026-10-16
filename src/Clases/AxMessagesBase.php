@@ -20,6 +20,11 @@ class AxMessagesBase
 
     protected array $headers = ['Accept' => 'application/json'];
 
+    /**
+     * Último error ocurrido durante la operación.
+     */
+    protected array $error = [];
+
     private PromiseInterface|Response $response;
 
     protected static HttpFactory $httpClient;
@@ -47,12 +52,23 @@ class AxMessagesBase
     protected function request(string $method, ?string $url = null, ?array $data = null): PromiseInterface|Response
     {
         $actualUrl = $url ?? $this->url;
+        $this->error = [];
 
         if (AxMessages::isFake() || config('axMessages.disabled')) {
             $this->fake($actualUrl);
         }
 
-        $this->response = $this->http()->{lcfirst($method)}($actualUrl, $data);
+        try {
+            $this->response = $this->http()->{lcfirst($method)}($actualUrl, $data);
+        } catch (\Throwable $e) {
+            $this->captureError($e);
+
+            throw $e;
+        }
+
+        if ($this->response instanceof Response && $this->response->failed()) {
+            $this->captureError($this->response);
+        }
 
         return $this->response;
     }
@@ -80,6 +96,85 @@ class AxMessagesBase
     protected function response(): ?array
     {
         return $this->response->json();
+    }
+
+    /**
+     * Indica si la última operación terminó con un error.
+     */
+    public function hasError(): bool
+    {
+        return ! empty($this->error);
+    }
+
+    /**
+     * Retorna el último error ocurrido, o un arreglo vacío si no hubo error.
+     */
+    public function getError(): array
+    {
+        return $this->error;
+    }
+
+    /**
+     * Registra el error de una respuesta fallida o de una excepción.
+     */
+    protected function captureError(\Throwable|Response $source): void
+    {
+        if ($source instanceof Response) {
+            $payload = rescue(fn () => $source->json(), [], false);
+
+            if (! is_array($payload)) {
+                $this->error = [
+                    'status' => 'error',
+                    'data' => [],
+                    'message' => $source->body(),
+                ];
+
+                return;
+            }
+
+            $data = $payload['data'] ?? $payload['errors'] ?? $payload;
+            $message = ($payload['message'] ?? null) ?: $this->extractErrorMessage($data) ?: $source->body();
+
+            $this->error = [
+                'status' => 'error',
+                'data' => $data,
+                'message' => $message,
+            ];
+
+            return;
+        }
+
+        $this->error = [
+            'status' => 'error',
+            'data' => [],
+            'message' => $source->getMessage(),
+        ];
+    }
+
+    /**
+     * Extrae el primer mensaje de error legible de un arreglo de errores.
+     *
+     * @param  array<int|string, mixed>  $data
+     */
+    protected function extractErrorMessage(array $data): ?string
+    {
+        foreach ($data as $value) {
+            if (is_array($value)) {
+                $message = $this->extractErrorMessage($value);
+
+                if ($message !== null) {
+                    return $message;
+                }
+
+                continue;
+            }
+
+            if (is_string($value) && $value !== '') {
+                return $value;
+            }
+        }
+
+        return null;
     }
 
     public function activeDebugMode(): self

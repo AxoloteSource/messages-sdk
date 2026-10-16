@@ -3,10 +3,12 @@
 namespace AxoloteSource\MessagesSdk\Tests\Unit;
 
 use AxoloteSource\MessagesSdk\AxMessages;
+use AxoloteSource\MessagesSdk\Clases\AxMessagesBase;
 use AxoloteSource\MessagesSdk\Clases\SendPushNotification;
 use AxoloteSource\MessagesSdk\Tests\TestCase;
 use AxoloteSource\MessagesSdk\DTO\Message;
 use AxoloteSource\MessagesSdk\DTO\PushNotification;
+use Illuminate\Http\Client\Factory as HttpFactory;
 
 class AxMessagesTest extends TestCase
 {
@@ -164,5 +166,72 @@ class AxMessagesTest extends TestCase
         $result = AxMessages::pushNotification()->destroy('1');
 
         $this->assertTrue($result);
+    }
+
+    public function test_has_error_is_false_and_get_error_is_empty_on_success()
+    {
+        AxMessages::fake(true);
+
+        $email = AxMessages::email();
+        $message = $email->template(['to' => 'test@example.com']);
+
+        $this->assertInstanceOf(Message::class, $message);
+        $this->assertFalse($email->hasError());
+        $this->assertEmpty($email->getError());
+    }
+
+    public function test_has_error_is_true_when_response_fails()
+    {
+        AxMessages::fake(false);
+        $this->fakeHttpResponse(
+            'https://api.ejemplo.com/api/v1/messages/email/send',
+            ['message' => 'Error'],
+            422
+        );
+
+        $email = AxMessages::email();
+        $message = $email->template(['to' => 'test@example.com']);
+
+        $this->assertNull($message);
+        $this->assertTrue($email->hasError());
+        $this->assertSame('error', $email->getError()['status']);
+        $this->assertSame('Error', $email->getError()['message']);
+        $this->assertSame(['message' => 'Error'], $email->getError()['data']);
+    }
+
+    public function test_extracts_the_first_validation_message_when_message_is_null()
+    {
+        AxMessages::fake(false);
+        $this->fakeHttpResponse(
+            'https://api.ejemplo.com/api/v1/messages/email/send',
+            [
+                'status' => 'error',
+                'message' => null,
+                'data' => ['email' => ['The email has already been taken.']],
+            ],
+            422
+        );
+
+        $email = AxMessages::email();
+        $message = $email->template(['to' => 'test@example.com']);
+
+        $this->assertNull($message);
+        $this->assertTrue($email->hasError());
+        $this->assertSame('error', $email->getError()['status']);
+        $this->assertSame('The email has already been taken.', $email->getError()['message']);
+        $this->assertSame(['email' => ['The email has already been taken.']], $email->getError()['data']);
+    }
+
+    private function fakeHttpResponse(string $url, array $body, int $status): void
+    {
+        $factory = new HttpFactory;
+        $factory->fake([
+            $url => HttpFactory::response($body, $status, ['Accept' => 'application/json']),
+        ]);
+
+        $reflection = new \ReflectionClass(AxMessagesBase::class);
+        $property = $reflection->getProperty('httpClient');
+        $property->setAccessible(true);
+        $property->setValue(null, $factory);
     }
 }
