@@ -2,6 +2,25 @@
 
 SDK for integration with the AxMessages messaging service from Axolote Source. This library facilitates sending WhatsApp messages, emails, and push notifications, as well as reading inbound WhatsApp messages, from Laravel applications.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Configuration](#configuration)
+  - [Configuration Variables](#configuration-variables)
+- [Usage](#usage)
+  - [Send WhatsApp with Template](#send-whatsapp-with-template)
+  - [Send Email with Template](#send-email-with-template)
+  - [Send Push Notification](#send-push-notification)
+  - [Show Push Notification](#show-push-notification)
+  - [Create Push Notification](#create-push-notification)
+  - [Update Push Notification](#update-push-notification)
+  - [Delete Push Notification](#delete-push-notification)
+  - [Incoming WhatsApp Messages](#incoming-whatsapp-messages)
+  - [Drivers](#drivers)
+  - [Providers](#providers)
+- [Testing (Mocking)](#testing-mocking)
+- [Debugging](#debugging)
+
 ## Installation
 
 You can install the package via Composer:
@@ -253,6 +272,81 @@ if ($incoming->hasError()) {
     $error = $incoming->getError();
     echo $error['message'];
 }
+```
+
+### Drivers
+
+Manage the messaging drivers with `AxMessages::drivers()`:
+
+```php
+use AxoloteSource\MessagesSdk\AxMessages;
+
+$drivers = AxMessages::drivers()->list();
+
+foreach ($drivers as $driver) {
+    echo $driver->id;
+    echo $driver->name;
+    echo $driver->configKey;
+}
+
+$driver = AxMessages::drivers()->show(1);
+
+$created = AxMessages::drivers()->create('Custom Driver', 'custom.driver');
+$updated = AxMessages::drivers()->update(1, 'Updated Driver', 'updated.driver');
+$deleted = AxMessages::drivers()->destroy(1);
+```
+
+### Providers
+
+Manage the messaging providers with their channels and configuration through `AxMessages::providers()`:
+
+```php
+use AxoloteSource\MessagesSdk\AxMessages;
+
+$providers = AxMessages::providers()->list();
+
+foreach ($providers as $provider) {
+    echo $provider->id;
+    echo $provider->name;
+
+    foreach ($provider->channels as $channel) {
+        echo $channel['name'];
+    }
+
+    if ($provider->providerConfig) {
+        echo $provider->providerConfig->name;
+        echo $provider->providerConfig->driverName;
+    }
+}
+
+$provider = AxMessages::providers()->show('provider-uuid');
+
+$created = AxMessages::providers()->create(
+    name: 'Custom Provider',
+    channelIds: [1],
+    providerConfig: [
+        'name' => 'Custom Provider Config',
+        'driver_id' => 2,
+        'active' => true,
+        'default' => true,
+        'config' => ['api' => 'https://example.test'],
+    ],
+);
+
+$updated = AxMessages::providers()->update(
+    id: 'provider-uuid',
+    name: 'Updated Provider',
+    channelIds: [1, 2],
+    providerConfig: [
+        'name' => 'Updated Provider Config',
+        'driver_id' => 2,
+        'active' => true,
+        'default' => true,
+        'config' => ['api' => 'https://example.test'],
+    ],
+);
+
+$deleted = AxMessages::providers()->destroy('provider-uuid');
 ```
 
 ## Testing (Mocking)
