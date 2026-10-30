@@ -3,7 +3,9 @@
 namespace AxoloteSource\MessagesSdk;
 
 use AxoloteSource\MessagesSdk\Traits\UseFake;
+use AxoloteSource\MessagesSdk\Clases\Drivers;
 use AxoloteSource\MessagesSdk\Clases\Incoming;
+use AxoloteSource\MessagesSdk\Clases\Providers;
 use AxoloteSource\MessagesSdk\Clases\ReplicateUrls;
 use AxoloteSource\MessagesSdk\Clases\SendEmail;
 use AxoloteSource\MessagesSdk\Clases\SendPushNotification;
@@ -43,6 +45,22 @@ class AxMessages
     public static function replicateUrls(): ReplicateUrls
     {
         return new ReplicateUrls;
+    }
+
+    /**
+     * CRUD access to the messaging drivers.
+     */
+    public static function drivers(): Drivers
+    {
+        return new Drivers;
+    }
+
+    /**
+     * CRUD access to the messaging providers.
+     */
+    public static function providers(): Providers
+    {
+        return new Providers;
     }
 
     /*****************************
